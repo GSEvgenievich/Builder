@@ -1,0 +1,47 @@
+name: .NET Build and Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  PROJECT_NAME: "MyCSharpProject"
+  BUILD_CONFIG: "Release"
+
+jobs:
+  build:
+    runs-on: self-hosted
+    name: Build .NET App
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration $BUILD_CONFIG --no-restore
+      
+    - name: Run tests
+      run: dotnet test --configuration $BUILD_CONFIG --no-build
+      
+    - name: Publish application
+      run: dotnet publish $PROJECT_NAME/$PROJECT_NAME.csproj --configuration $BUILD_CONFIG --output ./publish
+      
+    - name: List published files
+      run: ls -la ./publish/
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-csharp-app
+        path: publish/
+        retention-days: 1
